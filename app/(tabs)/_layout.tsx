@@ -14,13 +14,13 @@ export default function TabLayout() {
   const { session } = useAuth();
   const [firstName, setFirstName] = useState('');
   const [mounted, setMounted] = useState(false);
-  
+
   useEffect(() => {
     setMounted(true);
   }, []);
-  
+
   useEffect(() => {
-    if(mounted && !session?.user?.id) router.replace('/(auth)/login');
+    if (mounted && !session?.user?.id) router.replace('/(auth)/login');
     async function loadProfile() {
       try {
         if (!session?.user?.id) return;
@@ -34,7 +34,7 @@ export default function TabLayout() {
         if (error) throw error;
         if (data) {
           const name = data.first_name;
-          console.log(name)
+          console.log(name);
           setFirstName(name);
         }
       } catch (error) {
@@ -43,30 +43,30 @@ export default function TabLayout() {
     }
 
     loadProfile();
-  }, [session?.user?.id]);
+  }, [session?.user?.id, mounted]);
 
   // Map of route names to their display titles and subtitles
   const routeTitles = {
     '/(tabs)': {
       title: `Hi ${firstName}!`,
-      subtitle: 'There are 3 important things...'
+      subtitle: 'There are 3 important things...',
     },
     '/(tabs)/tasks': {
       title: 'My Tasks',
-      subtitle: 'Track your eco-friendly activities'
+      subtitle: 'Track your eco-friendly activities',
     },
     '/(tabs)/marketplace': {
       title: 'Marketplace',
-      subtitle: 'Find eco-friendly products'
+      subtitle: 'Find eco-friendly products',
     },
     '/(tabs)/carbon': {
       title: 'Carbon Footprint',
-      subtitle: 'Track your environmental impact'
+      subtitle: 'Track your environmental impact',
     },
     '/(tabs)/profile': {
       title: 'Profile',
-      subtitle: 'Manage your account'
-    }
+      subtitle: 'Manage your account',
+    },
   };
 
   useEffect(() => {
@@ -77,15 +77,15 @@ export default function TabLayout() {
 
   // Get the current route information
   const activeRoute = useMemo(() => {
-    return routeTitles[pathname as keyof typeof routeTitles] || routeTitles['/(tabs)'];
+    return (
+      routeTitles[pathname as keyof typeof routeTitles] ||
+      routeTitles['/(tabs)']
+    );
   }, [pathname, firstName]);
 
   return (
     <View style={{ flex: 1, backgroundColor: isDark ? '#1F2937' : '#F8FAFC' }}>
-      <Header 
-        title={activeRoute.title}
-        subtitle={activeRoute.subtitle}
-      />
+      <Header title={activeRoute.title} subtitle={activeRoute.subtitle} />
       <Tabs
         screenOptions={{
           headerShown: false,
@@ -99,7 +99,8 @@ export default function TabLayout() {
           },
           tabBarActiveTintColor: '#00B288',
           tabBarInactiveTintColor: isDark ? '#6B7280' : '#94A3B8',
-        }}>
+        }}
+      >
         <Tabs.Screen
           name="index"
           options={{

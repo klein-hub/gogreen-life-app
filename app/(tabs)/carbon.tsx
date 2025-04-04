@@ -301,6 +301,9 @@ export default function CarbonScreen() {
         formattedEmissionFactors
       );
 
+      console.log('Calculated carbon footprint:', result);
+      console.log('isMounted.current:', isMounted.current);
+
       if (result && isMounted.current) {
         setTotalFootprint(result.total_carbon_footprint);
         setTopContributors(result.top_contributors);

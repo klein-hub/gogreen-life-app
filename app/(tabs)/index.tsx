@@ -1,4 +1,11 @@
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, useWindowDimensions } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  useWindowDimensions,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../context/theme';
 import { useAuth } from '../../context/auth';
@@ -34,16 +41,7 @@ export default function Dashboard() {
   const [totalPoints, setTotalPoints] = useState(0);
   const [weeklyGoal] = useState(500); // Example weekly goal
   const [weeklyProgress, setWeeklyProgress] = useState(0);
-  const [mounted, seMounted] = useState(false);
-  
-  useEffect(() => {
-    if(mounted && !session?.user?.id) router.replace('/(auth)/login');
-  }, [session?.user?.id]);
 
-   useEffect(() => {
-    seMounted(true);
-  }, []);
-  
   useEffect(() => {
     loadDashboardData();
   }, [session?.user?.id]);
@@ -55,7 +53,8 @@ export default function Dashboard() {
       // Load tasks
       const { data: tasksData, error: tasksError } = await supabase
         .from('user_tasks')
-        .select(`
+        .select(
+          `
           *,
           tasks (
             title,
@@ -63,7 +62,8 @@ export default function Dashboard() {
             points,
             task_type
           )
-        `)
+        `
+        )
         .eq('user_id', session.user.id)
         .order('created_at', { ascending: false })
         .limit(5);
@@ -72,7 +72,9 @@ export default function Dashboard() {
       setTasks(tasksData || []);
 
       // Calculate total points and weekly progress
-      const points = tasksData?.reduce((sum, task) => sum + (task.tasks.points || 0), 0) || 0;
+      const points =
+        tasksData?.reduce((sum, task) => sum + (task.tasks.points || 0), 0) ||
+        0;
       setTotalPoints(points);
       setWeeklyProgress((points / weeklyGoal) * 100);
     } catch (e) {
@@ -85,33 +87,49 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <Text style={{ color: isDark ? '#fff' : '#1F2937' }}>Loading dashboard...</Text>
+      <View
+        style={[
+          styles.container,
+          { justifyContent: 'center', alignItems: 'center' },
+        ]}
+      >
+        <Text style={{ color: isDark ? '#fff' : '#1F2937' }}>
+          Loading dashboard...
+        </Text>
       </View>
     );
   }
 
   if (error) {
     return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+      <View
+        style={[
+          styles.container,
+          { justifyContent: 'center', alignItems: 'center' },
+        ]}
+      >
         <Text style={{ color: isDark ? '#fff' : '#1F2937' }}>{error}</Text>
       </View>
     );
   }
 
   return (
-    <ScrollView style={[
-      styles.container,
-      { backgroundColor: isDark ? '#1F2937' : '#F8FAFC' }
-    ]}>
+    <ScrollView
+      style={[
+        styles.container,
+        { backgroundColor: isDark ? '#1F2937' : '#F8FAFC' },
+      ]}
+    >
       {/* Main Stats Card */}
-      <View style={[
-        styles.mainCard,
-        { 
-          backgroundColor: isDark ? '#111827' : '#00B288',
-          marginTop: 5
-        }
-      ]}>
+      <View
+        style={[
+          styles.mainCard,
+          {
+            backgroundColor: isDark ? '#111827' : '#00B288',
+            marginTop: 5,
+          },
+        ]}
+      >
         <View style={styles.pointsSection}>
           <Text style={styles.pointsLabel}>Total Points Earned</Text>
           <Text style={styles.pointsValue}>{totalPoints}</Text>
@@ -138,10 +156,14 @@ export default function Dashboard() {
         <View style={styles.progressSection}>
           <View style={styles.progressHeader}>
             <Text style={styles.progressLabel}>Weekly Goal Progress</Text>
-            <Text style={styles.progressValue}>{Math.round(weeklyProgress)}%</Text>
+            <Text style={styles.progressValue}>
+              {Math.round(weeklyProgress)}%
+            </Text>
           </View>
           <View style={styles.progressBarContainer}>
-            <View style={[styles.progressBar, { width: `${weeklyProgress}%` }]} />
+            <View
+              style={[styles.progressBar, { width: `${weeklyProgress}%` }]}
+            />
           </View>
           <Text style={styles.progressTarget}>Target: {weeklyGoal} points</Text>
         </View>
@@ -150,11 +172,15 @@ export default function Dashboard() {
       {/* Recent Tasks */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={[
-            styles.sectionTitle,
-            { color: isDark ? '#fff' : '#1F2937' }
-          ]}>Recent Tasks</Text>
-          <TouchableOpacity 
+          <Text
+            style={[
+              styles.sectionTitle,
+              { color: isDark ? '#fff' : '#1F2937' },
+            ]}
+          >
+            Recent Tasks
+          </Text>
+          <TouchableOpacity
             style={styles.viewAllButton}
             onPress={() => router.push('/(tabs)/tasks')}
           >
@@ -168,34 +194,52 @@ export default function Dashboard() {
               key={task.id}
               style={[
                 styles.taskCard,
-                { backgroundColor: isDark ? '#111827' : 'white' }
+                { backgroundColor: isDark ? '#111827' : 'white' },
               ]}
               onPress={() => router.push('/(tabs)/tasks')}
             >
               <View style={styles.taskIcon}>
-                <Ionicons 
-                  name={task.tasks.task_type === 'water' ? 'water' : 
-                    task.tasks.task_type === 'energy' ? 'flash' : 'leaf'} 
-                  size={24} 
-                  color="#00B288" 
+                <Ionicons
+                  name={
+                    task.tasks.task_type === 'water'
+                      ? 'water'
+                      : task.tasks.task_type === 'energy'
+                      ? 'flash'
+                      : 'leaf'
+                  }
+                  size={24}
+                  color="#00B288"
                 />
               </View>
               <View style={styles.taskInfo}>
-                <Text style={[
-                  styles.taskTitle,
-                  { color: isDark ? '#fff' : '#1F2937' }
-                ]}>{task.tasks.title}</Text>
-                <Text style={[
-                  styles.taskDescription,
-                  { color: isDark ? '#9CA3AF' : '#64748B' }
-                ]} numberOfLines={1}>{task.tasks.description}</Text>
+                <Text
+                  style={[
+                    styles.taskTitle,
+                    { color: isDark ? '#fff' : '#1F2937' },
+                  ]}
+                >
+                  {task.tasks.title}
+                </Text>
+                <Text
+                  style={[
+                    styles.taskDescription,
+                    { color: isDark ? '#9CA3AF' : '#64748B' },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {task.tasks.description}
+                </Text>
               </View>
               <View style={styles.taskPoints}>
                 <Ionicons name="star" size={16} color="#FFD700" />
-                <Text style={[
-                  styles.pointsText,
-                  { color: isDark ? '#fff' : '#1F2937' }
-                ]}>{task.tasks.points}</Text>
+                <Text
+                  style={[
+                    styles.pointsText,
+                    { color: isDark ? '#fff' : '#1F2937' },
+                  ]}
+                >
+                  {task.tasks.points}
+                </Text>
               </View>
             </TouchableOpacity>
           ))}
