@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "GoGreen Life",
+    "slug": "gogreen-life",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "gogreen",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Allow GoGreen Life to access your camera to record task completion videos.",
+        "NSMicrophoneUsageDescription": "Allow GoGreen Life to access your microphone for recording task videos."
+      }
+    },
+    "android": {
+      "permissions": [
+        "CAMERA",
+        "RECORD_AUDIO"
+      ],
+      "package": "com.anonymous.gogreenlife"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow GoGreen Life to access your camera to record task completion videos."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
