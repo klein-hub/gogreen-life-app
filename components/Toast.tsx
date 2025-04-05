@@ -8,23 +8,44 @@ type ToastProps = {
   onHide: () => void;
 };
 
-export default function Toast({ message, type = 'success', onHide }: ToastProps) {
+export default function Toast({
+  message,
+  type = 'success',
+  onHide,
+}: ToastProps) {
   const opacity = new Animated.Value(0);
+  const translateY = new Animated.Value(-20);
 
   useEffect(() => {
-    Animated.sequence([
+    Animated.parallel([
       Animated.timing(opacity, {
         toValue: 1,
         duration: 300,
         useNativeDriver: true,
       }),
-      Animated.delay(2000),
-      Animated.timing(opacity, {
+      Animated.timing(translateY, {
         toValue: 0,
         duration: 300,
         useNativeDriver: true,
       }),
-    ]).start(() => onHide());
+    ]).start();
+
+    const timer = setTimeout(() => {
+      Animated.parallel([
+        Animated.timing(opacity, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(translateY, {
+          toValue: -20,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start(() => onHide());
+    }, 3000);
+
+    return () => clearTimeout(timer);
   }, []);
 
   const getIcon = () => {
@@ -54,20 +75,13 @@ export default function Toast({ message, type = 'success', onHide }: ToastProps)
   };
 
   return (
-    <Animated.View 
+    <Animated.View
       style={[
         styles.container,
-        { 
+        {
           opacity,
           backgroundColor: getColor(),
-          transform: [
-            {
-              translateY: opacity.interpolate({
-                inputRange: [0, 1],
-                outputRange: [-20, 0],
-              }),
-            },
-          ],
+          transform: [{ translateY }],
         },
       ]}
     >
@@ -79,10 +93,8 @@ export default function Toast({ message, type = 'success', onHide }: ToastProps)
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute',
-    top: 60,
-    left: 20,
-    right: 20,
+    position: 'fixed',
+    bottom: 0,
     backgroundColor: '#00B288',
     borderRadius: 12,
     padding: 16,

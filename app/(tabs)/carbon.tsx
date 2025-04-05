@@ -34,7 +34,6 @@ export default function CarbonScreen() {
   );
   const isMounted = useRef(true);
 
-  // Default values for total footprint and top contributors
   const defaultTotalFootprint = {
     daily: 0,
     weekly: 0,
@@ -53,7 +52,6 @@ export default function CarbonScreen() {
     defaultTopContributors
   );
 
-  // Utilities state
   const [electricityUsage, setElectricityUsage] = useState('');
   const [electricityUnit, setElectricityUnit] = useState('kWh');
   const [electricityFreq, setElectricityFreq] = useState<Frequency>('month');
@@ -66,7 +64,6 @@ export default function CarbonScreen() {
   const [coalUnit, setCoalUnit] = useState('kg');
   const [coalFreq, setCoalFreq] = useState<Frequency>('month');
 
-  // Food & Lifestyle state
   const [pharmaceuticals, setPharmaceuticals] = useState('');
   const [pharmaceuticalsFreq, setPharmaceuticalsFreq] =
     useState<Frequency>('month');
@@ -82,7 +79,6 @@ export default function CarbonScreen() {
   const [foodAndDrink, setFoodAndDrink] = useState('');
   const [foodAndDrinkFreq, setFoodAndDrinkFreq] = useState<Frequency>('month');
 
-  // Technology & Entertainment state
   const [computers, setComputers] = useState('');
   const [computersFreq, setComputersFreq] = useState<Frequency>('month');
 
@@ -92,14 +88,12 @@ export default function CarbonScreen() {
   const [recreational, setRecreational] = useState('');
   const [recreationalFreq, setRecreationalFreq] = useState<Frequency>('month');
 
-  // Services state
   const [hotels, setHotels] = useState('');
   const [hotelsFreq, setHotelsFreq] = useState<Frequency>('month');
 
   const [telecoms, setTelecoms] = useState('');
   const [telecomsFreq, setTelecomsFreq] = useState<Frequency>('month');
 
-  // Commute state
   const [commuteRoutes, setCommuteRoutes] = useState<CommuteRoute[]>([
     {
       id: '1',
@@ -112,7 +106,6 @@ export default function CarbonScreen() {
     },
   ]);
 
-  // Vehicles state
   const [vehicles, setVehicles] = useState<CustomActivity[]>([
     {
       id: '1',
@@ -123,10 +116,8 @@ export default function CarbonScreen() {
     },
   ]);
 
-  // Other Activities state
   const [otherActivities, setOtherActivities] = useState<CustomActivity[]>([]);
 
-  // Available units
   const electricityUnits = [
     { value: 'kWh', label: 'Kilowatt Hours' },
     { value: 'MWh', label: 'Megawatt Hours' },
@@ -208,9 +199,6 @@ export default function CarbonScreen() {
 
       setFieldsValue(emissionFactors || ({} as EmissionFactors));
 
-      if (emissionFactors && isMounted.current) {
-      }
-
       const footprint = await carbonFootprintService.getCarbonFootprint(
         session!.user!.id
       );
@@ -240,11 +228,16 @@ export default function CarbonScreen() {
     message: string,
     type: 'success' | 'error' | 'info' = 'success'
   ) => {
-    if (isMounted.current) {
-      setToastMessage(message);
-      setToastType(type);
-      setShowToast(true);
-    }
+    setToastMessage(message);
+    setToastType(type);
+    console.log('showToast');
+    setShowToast(true);
+
+    setTimeout(() => {
+      if (isMounted.current) {
+        setShowToast(false);
+      }
+    }, 3000);
   };
 
   const handleSubmit = async () => {
@@ -256,6 +249,8 @@ export default function CarbonScreen() {
         );
         return;
       }
+
+      showToastMessage('Calculating carbon footprint...', 'info');
 
       const emissionFactors = {
         user_id: session.user.id,
@@ -296,7 +291,6 @@ export default function CarbonScreen() {
       };
 
       await carbonFootprintService.saveEmissionFactors(emissionFactors);
-
       const result = await carbonFootprintService.calculateCarbonFootprint(
         formattedEmissionFactors
       );
@@ -305,9 +299,11 @@ export default function CarbonScreen() {
       console.log('isMounted.current:', isMounted.current);
 
       if (result && isMounted.current) {
-        setTotalFootprint(result.total_carbon_footprint);
-        setTopContributors(result.top_contributors);
-        showToastMessage('Carbon footprint saved successfully');
+        setTotalFootprint(
+          result.total_carbon_footprint || defaultTotalFootprint
+        );
+        setTopContributors(result.top_contributors || defaultTopContributors);
+        showToastMessage('Carbon footprint calculated successfully', 'success');
       } else if (isMounted.current) {
         showToastMessage('Failed to calculate carbon footprint', 'error');
       }
@@ -319,7 +315,6 @@ export default function CarbonScreen() {
     }
   };
 
-  // Commute handlers
   const handleAddRoute = () => {
     const newRoute: CommuteRoute = {
       id: Date.now().toString(),
@@ -345,7 +340,6 @@ export default function CarbonScreen() {
     );
   };
 
-  // Vehicle handlers
   const handleAddVehicle = () => {
     const newVehicle: CustomActivity = {
       id: Date.now().toString(),
@@ -372,7 +366,6 @@ export default function CarbonScreen() {
     );
   };
 
-  // Other activities handlers
   const handleAddActivity = () => {
     const newActivity: CustomActivity = {
       id: Date.now().toString(),
@@ -402,13 +395,7 @@ export default function CarbonScreen() {
   };
 
   return (
-    <ScrollView
-      style={[
-        styles.container,
-        { backgroundColor: isDark ? '#1F2937' : '#F8FAFC' },
-      ]}
-      showsVerticalScrollIndicator={false}
-    >
+    <>
       {showToast && (
         <Toast
           message={toastMessage}
@@ -417,177 +404,187 @@ export default function CarbonScreen() {
         />
       )}
 
-      <CarbonSummary
-        totalFootprint={totalFootprint}
-        topContributors={topContributors}
-      />
-
-      <View style={styles.sections}>
-        <CarbonSection
-          title="Utilities"
-          icon="flash"
-          iconColor="#F59E0B"
-          fields={[
-            {
-              label: 'Electricity Usage',
-              value: electricityUsage,
-              onChangeText: setElectricityUsage,
-              unit: electricityUnit,
-              frequency: electricityFreq,
-              onFrequencyChange: setElectricityFreq,
-              availableUnits: electricityUnits,
-              onUnitChange: setElectricityUnit,
-            },
-            {
-              label: 'LPG Usage',
-              value: lpgUsage,
-              onChangeText: setLpgUsage,
-              unit: lpgUnit,
-              frequency: lpgFreq,
-              onFrequencyChange: setLpgFreq,
-              availableUnits: massUnits,
-              onUnitChange: setLpgUnit,
-            },
-            {
-              label: 'Coal Usage',
-              value: coalUsage,
-              onChangeText: setCoalUsage,
-              unit: coalUnit,
-              frequency: coalFreq,
-              onFrequencyChange: setCoalFreq,
-              availableUnits: massUnits,
-              onUnitChange: setCoalUnit,
-            },
-          ]}
-        />
-
-        <CarbonSection
-          title="Food & Lifestyle"
-          icon="restaurant"
-          iconColor="#10B981"
-          fields={[
-            {
-              label: 'Pharmaceuticals',
-              value: pharmaceuticals,
-              onChangeText: setPharmaceuticals,
-              unit: '₱',
-              frequency: pharmaceuticalsFreq,
-              onFrequencyChange: setPharmaceuticalsFreq,
-            },
-            {
-              label: 'Clothes & Textiles',
-              value: clothesTextiles,
-              onChangeText: setClothesTextiles,
-              unit: '₱',
-              frequency: clothesTextilesFreq,
-              onFrequencyChange: setClothesTextilesFreq,
-            },
-            {
-              label: 'Furniture & Goods',
-              value: furnitureGoods,
-              onChangeText: setFurnitureGoods,
-              unit: '₱',
-              frequency: furnitureGoodsFreq,
-              onFrequencyChange: setFurnitureGoodsFreq,
-            },
-            {
-              label: 'Food & Drink',
-              value: foodAndDrink,
-              onChangeText: setFoodAndDrink,
-              unit: '₱',
-              frequency: foodAndDrinkFreq,
-              onFrequencyChange: setFoodAndDrinkFreq,
-            },
-          ]}
-        />
-
-        <CarbonSection
-          title="Technology & Entertainment"
-          icon="laptop"
-          iconColor="#6366F1"
-          fields={[
-            {
-              label: 'Computers & IT Equipment',
-              value: computers,
-              onChangeText: setComputers,
-              unit: '₱',
-              frequency: computersFreq,
-              onFrequencyChange: setComputersFreq,
-            },
-            {
-              label: 'TV & Radio Equipment',
-              value: tvEquipment,
-              onChangeText: setTvEquipment,
-              unit: '₱',
-              frequency: tvEquipmentFreq,
-              onFrequencyChange: setTvEquipmentFreq,
-            },
-            {
-              label: 'Recreational Activities',
-              value: recreational,
-              onChangeText: setRecreational,
-              unit: '₱',
-              frequency: recreationalFreq,
-              onFrequencyChange: setRecreationalFreq,
-            },
-          ]}
-        />
-
-        <CarbonSection
-          title="Services"
-          icon="business"
-          iconColor="#8B5CF6"
-          fields={[
-            {
-              label: 'Hotels & Restaurants',
-              value: hotels,
-              onChangeText: setHotels,
-              unit: '₱',
-              frequency: hotelsFreq,
-              onFrequencyChange: setHotelsFreq,
-            },
-            {
-              label: 'Telecommunications',
-              value: telecoms,
-              onChangeText: setTelecoms,
-              unit: '₱',
-              frequency: telecomsFreq,
-              onFrequencyChange: setTelecomsFreq,
-            },
-          ]}
-        />
-
-        <CommuteSection
-          routes={commuteRoutes}
-          onAddRoute={handleAddRoute}
-          onRemoveRoute={handleRemoveRoute}
-          onUpdateRoute={handleUpdateRoute}
-        />
-
-        <CustomActivitySection
-          activities={vehicles}
-          onAddActivity={handleAddVehicle}
-          onRemoveActivity={handleRemoveVehicle}
-          onUpdateActivity={handleUpdateVehicle}
-        />
-
-        <CustomActivitySection
-          activities={otherActivities}
-          onAddActivity={handleAddActivity}
-          onRemoveActivity={handleRemoveActivity}
-          onUpdateActivity={handleUpdateActivity}
-        />
-      </View>
-
-      <TouchableOpacity
-        style={[styles.submitButton, { backgroundColor: '#00B288' }]}
-        onPress={handleSubmit}
+      <ScrollView
+        style={[
+          styles.container,
+          { backgroundColor: isDark ? '#1F2937' : '#F8FAFC' },
+        ]}
+        showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.submitButtonText}>Calculate Carbon Footprint</Text>
-      </TouchableOpacity>
+        <CarbonSummary
+          totalFootprint={totalFootprint}
+          topContributors={topContributors}
+        />
 
-      <View style={{ height: 80 }} />
-    </ScrollView>
+        <View style={styles.sections}>
+          <CarbonSection
+            title="Utilities"
+            icon="flash"
+            iconColor="#F59E0B"
+            fields={[
+              {
+                label: 'Electricity Usage',
+                value: electricityUsage,
+                onChangeText: setElectricityUsage,
+                unit: electricityUnit,
+                frequency: electricityFreq,
+                onFrequencyChange: setElectricityFreq,
+                availableUnits: electricityUnits,
+                onUnitChange: setElectricityUnit,
+              },
+              {
+                label: 'LPG Usage',
+                value: lpgUsage,
+                onChangeText: setLpgUsage,
+                unit: lpgUnit,
+                frequency: lpgFreq,
+                onFrequencyChange: setLpgFreq,
+                availableUnits: massUnits,
+                onUnitChange: setLpgUnit,
+              },
+              {
+                label: 'Coal Usage',
+                value: coalUsage,
+                onChangeText: setCoalUsage,
+                unit: coalUnit,
+                frequency: coalFreq,
+                onFrequencyChange: setCoalFreq,
+                availableUnits: massUnits,
+                onUnitChange: setCoalUnit,
+              },
+            ]}
+          />
+
+          <CarbonSection
+            title="Food & Lifestyle"
+            icon="restaurant"
+            iconColor="#10B981"
+            fields={[
+              {
+                label: 'Pharmaceuticals',
+                value: pharmaceuticals,
+                onChangeText: setPharmaceuticals,
+                unit: '₱',
+                frequency: pharmaceuticalsFreq,
+                onFrequencyChange: setPharmaceuticalsFreq,
+              },
+              {
+                label: 'Clothes & Textiles',
+                value: clothesTextiles,
+                onChangeText: setClothesTextiles,
+                unit: '₱',
+                frequency: clothesTextilesFreq,
+                onFrequencyChange: setClothesTextilesFreq,
+              },
+              {
+                label: 'Furniture & Goods',
+                value: furnitureGoods,
+                onChangeText: setFurnitureGoods,
+                unit: '₱',
+                frequency: furnitureGoodsFreq,
+                onFrequencyChange: setFurnitureGoodsFreq,
+              },
+              {
+                label: 'Food & Drink',
+                value: foodAndDrink,
+                onChangeText: setFoodAndDrink,
+                unit: '₱',
+                frequency: foodAndDrinkFreq,
+                onFrequencyChange: setFoodAndDrinkFreq,
+              },
+            ]}
+          />
+
+          <CarbonSection
+            title="Technology & Entertainment"
+            icon="laptop"
+            iconColor="#6366F1"
+            fields={[
+              {
+                label: 'Computers & IT Equipment',
+                value: computers,
+                onChangeText: setComputers,
+                unit: '₱',
+                frequency: computersFreq,
+                onFrequencyChange: setComputersFreq,
+              },
+              {
+                label: 'TV & Radio Equipment',
+                value: tvEquipment,
+                onChangeText: setTvEquipment,
+                unit: '₱',
+                frequency: tvEquipmentFreq,
+                onFrequencyChange: setTvEquipmentFreq,
+              },
+              {
+                label: 'Recreational Activities',
+                value: recreational,
+                onChangeText: setRecreational,
+                unit: '₱',
+                frequency: recreationalFreq,
+                onFrequencyChange: setRecreationalFreq,
+              },
+            ]}
+          />
+
+          <CarbonSection
+            title="Services"
+            icon="business"
+            iconColor="#8B5CF6"
+            fields={[
+              {
+                label: 'Hotels & Restaurants',
+                value: hotels,
+                onChangeText: setHotels,
+                unit: '₱',
+                frequency: hotelsFreq,
+                onFrequencyChange: setHotelsFreq,
+              },
+              {
+                label: 'Telecommunications',
+                value: telecoms,
+                onChangeText: setTelecoms,
+                unit: '₱',
+                frequency: telecomsFreq,
+                onFrequencyChange: setTelecomsFreq,
+              },
+            ]}
+          />
+
+          <CommuteSection
+            routes={commuteRoutes}
+            onAddRoute={handleAddRoute}
+            onRemoveRoute={handleRemoveRoute}
+            onUpdateRoute={handleUpdateRoute}
+          />
+
+          <CustomActivitySection
+            activities={vehicles}
+            onAddActivity={handleAddVehicle}
+            onRemoveActivity={handleRemoveVehicle}
+            onUpdateActivity={handleUpdateVehicle}
+          />
+
+          <CustomActivitySection
+            activities={otherActivities}
+            onAddActivity={handleAddActivity}
+            onRemoveActivity={handleRemoveActivity}
+            onUpdateActivity={handleUpdateActivity}
+          />
+        </View>
+
+        <TouchableOpacity
+          style={[styles.submitButton, { backgroundColor: '#00B288' }]}
+          onPress={handleSubmit}
+        >
+          <Text style={styles.submitButtonText}>
+            Calculate Carbon Footprint
+          </Text>
+        </TouchableOpacity>
+
+        <View style={{ height: 80 }} />
+      </ScrollView>
+    </>
   );
 }
 
