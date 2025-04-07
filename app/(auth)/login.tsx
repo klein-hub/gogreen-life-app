@@ -40,7 +40,7 @@ export default function Login() {
       setIsLoading(true);
       setError(null);
       await signIn(email, password);
-      router.replace('/(tabs)/');
+      router.replace('/(tabs)');
     } catch (err) {
       setError('Invalid email or password');
     } finally {

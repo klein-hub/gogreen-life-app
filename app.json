@@ -15,11 +15,8 @@
       }
     },
     "android": {
-      "permissions": [
-        "CAMERA",
-        "RECORD_AUDIO"
-      ],
-      "package": "com.anonymous.gogreenlife"
+      "permissions": ["CAMERA", "RECORD_AUDIO"],
+      "package": "com.propel.gogreenlife"
     },
     "web": {
       "bundler": "metro",
@@ -42,8 +39,10 @@
         "origin": false
       },
       "eas": {
-        "projectId": "d793b0f4-492c-403d-aa8f-da1ee62a4dd6"
+        "projectId": "bf7b823d-17f5-4637-a5b8-fd013943d42b"
       }
-    }
+    },
+    "assetBundlePatterns": ["**/*"],
+    "owner": "kleinhansss"
   }
 }

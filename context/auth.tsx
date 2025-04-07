@@ -22,6 +22,13 @@ const AuthContext = createContext<AuthContextType>({
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    // Small delay to ensure framework is ready
+    const timeout = setTimeout(() => setIsReady(true), 100);
+    return () => clearTimeout(timeout);
+  }, []);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -29,15 +36,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(false);
     });
 
-    supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      if (session) {
-        router.replace('/(tabs)');
-      } else {
-        router.replace('/(auth)/login');
+
+      if (isReady) {
+        if (session) {
+          // Wrap navigation in setTimeout to ensure it happens after layout
+          setTimeout(() => router.replace('/(tabs)'), 100);
+        } else {
+          setTimeout(() => {
+            router.replace('/(auth)/login');
+          }, 100);
+        }
       }
     });
-  }, []);
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [isReady]);
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
@@ -61,7 +80,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ session, isLoading, signIn, signUp, signOut }}>
+    <AuthContext.Provider
+      value={{ session, isLoading, signIn, signUp, signOut }}
+    >
       {children}
     </AuthContext.Provider>
   );
