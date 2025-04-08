@@ -2,13 +2,18 @@ import { Slot, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider, useAuth } from '../context/auth';
 import { ThemeProvider } from '../context/theme';
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import * as Font from 'expo-font';
 import { View, Text } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { preventAutoHideAsync, hideAsync } from '../lib/splash-screen';
 
 function RootLayoutNav() {
   const { isLoading, session } = useAuth();
+
+  useEffect(() => {
+    preventAutoHideAsync();
+  }, []);
 
   useEffect(() => {
     async function loadFonts() {
@@ -23,6 +28,12 @@ function RootLayoutNav() {
 
     loadFonts();
   }, []);
+
+  useEffect(() => {
+    if (!isLoading) {
+      hideAsync();
+    }
+  }, [isLoading]);
 
   if (isLoading) {
     return (

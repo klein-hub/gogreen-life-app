@@ -184,7 +184,7 @@ export default function Marketplace() {
               onPress={() => handleProductPress(product)}
             >
               <Image
-                source={{ uri: product.image_url }}
+                source={{ uri: product.image_url || '' }}
                 style={styles.productImage}
                 resizeMode="cover"
               />

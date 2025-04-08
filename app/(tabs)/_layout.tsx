@@ -20,7 +20,7 @@ export default function TabLayout() {
   }, []);
 
   useEffect(() => {
-    if (mounted && !session?.user?.id) router.replace('/(auth)/login');
+    // if (mounted && !session?.user?.id) router.replace('/(auth)/login');
     async function loadProfile() {
       try {
         if (!session?.user?.id) return;
@@ -34,7 +34,6 @@ export default function TabLayout() {
         if (error) throw error;
         if (data) {
           const name = data.first_name;
-          console.log(name);
           setFirstName(name);
         }
       } catch (error) {

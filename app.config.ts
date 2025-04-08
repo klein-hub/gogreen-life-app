@@ -12,6 +12,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ios: {
     supportsTablet: true,
   },
+  android: {
+    package: 'com.propel.gogreenlife', // Replace with your unique package name
+  },
   web: {
     bundler: 'metro',
     output: 'single',

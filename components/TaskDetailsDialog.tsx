@@ -1,4 +1,11 @@
-import { View, Text, TouchableOpacity, StyleSheet, Modal, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Modal,
+  Platform,
+} from 'react-native';
 import { useTheme } from '../context/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useState, useRef, useEffect } from 'react';
@@ -26,11 +33,11 @@ type TaskDetailsDialogProps = {
   task: Task;
 };
 
-export default function TaskDetailsDialog({ 
-  isVisible, 
-  onClose, 
-  onComplete, 
-  task
+export default function TaskDetailsDialog({
+  isVisible,
+  onClose,
+  onComplete,
+  task,
 }: TaskDetailsDialogProps) {
   const { isDark } = useTheme();
   const [isRecording, setIsRecording] = useState(false);
@@ -72,16 +79,15 @@ export default function TaskDetailsDialog({
       const video = await cameraRef.current.recordAsync({
         maxDuration: 5,
         quality: '720p',
-        mute: false
+        mute: false,
       });
 
-      setVideoUri(video.uri);
+      setVideoUri(video.uri || '');
 
       // Auto-stop after 5 seconds
       recordingTimeout.current = setTimeout(() => {
         stopRecording();
       }, 5000);
-
     } catch (err) {
       console.error('Error recording:', err);
       setError('Failed to record video');
@@ -95,7 +101,7 @@ export default function TaskDetailsDialog({
     try {
       await cameraRef.current.stopRecording();
       setIsRecording(false);
-      
+
       if (recordingTimeout.current) {
         clearTimeout(recordingTimeout.current);
       }
@@ -121,7 +127,7 @@ export default function TaskDetailsDialog({
       // Convert video to blob
       const response = await fetch(videoUri);
       const blob = await response.blob();
-      
+
       // Generate unique filename
       const fileName = `task-${task.id}-${Date.now()}.mp4`;
 
@@ -133,18 +139,19 @@ export default function TaskDetailsDialog({
       if (uploadError) throw uploadError;
 
       // Get public URL
-      const { data: { publicUrl }, error: urlError } = await supabase.storage
-        .from('task-videos')
-        .getPublicUrl(fileName);
+      const {
+        data: { publicUrl },
+        error: urlError,
+      } = await supabase.storage.from('task-videos').getPublicUrl(fileName);
 
       if (urlError) throw urlError;
 
       // Update task with video URL and status
       const { error: updateError } = await supabase
         .from('user_tasks')
-        .update({ 
+        .update({
           status: 'In Progress',
-          video_url: publicUrl
+          video_url: publicUrl,
         })
         .eq('id', task.id);
 
@@ -163,9 +170,9 @@ export default function TaskDetailsDialog({
   };
 
   const toggleCameraType = () => {
-    setType(current => (
+    setType((current) =>
       current === CameraType.back ? CameraType.front : CameraType.back
-    ));
+    );
   };
 
   if (Platform.OS === 'web') {
@@ -177,21 +184,24 @@ export default function TaskDetailsDialog({
         onRequestClose={onClose}
       >
         <View style={styles.overlay}>
-          <View style={[
-            styles.dialogContainer,
-            { backgroundColor: isDark ? '#111827' : 'white' }
-          ]}>
-            <Text style={[
-              styles.title,
-              { color: isDark ? '#fff' : '#1F2937' }
-            ]}>
+          <View
+            style={[
+              styles.dialogContainer,
+              { backgroundColor: isDark ? '#111827' : 'white' },
+            ]}
+          >
+            <Text
+              style={[styles.title, { color: isDark ? '#fff' : '#1F2937' }]}
+            >
               {task.title}
             </Text>
-            
-            <Text style={[
-              styles.description,
-              { color: isDark ? '#9CA3AF' : '#64748B' }
-            ]}>
+
+            <Text
+              style={[
+                styles.description,
+                { color: isDark ? '#9CA3AF' : '#64748B' },
+              ]}
+            >
               {task.description}
             </Text>
 
@@ -199,7 +209,8 @@ export default function TaskDetailsDialog({
               <View style={styles.webNotice}>
                 <Ionicons name="information-circle" size={24} color="#F59E0B" />
                 <Text style={styles.webNoticeText}>
-                  Video recording is only available on mobile devices. Please use the mobile app to record your task completion.
+                  Video recording is only available on mobile devices. Please
+                  use the mobile app to record your task completion.
                 </Text>
               </View>
             )}
@@ -208,29 +219,26 @@ export default function TaskDetailsDialog({
               <TouchableOpacity
                 style={[
                   styles.button,
-                  { backgroundColor: isDark ? '#374151' : '#F1F5F9' }
+                  { backgroundColor: isDark ? '#374151' : '#F1F5F9' },
                 ]}
                 onPress={onClose}
               >
-                <Text style={[
-                  styles.buttonText,
-                  { color: isDark ? '#fff' : '#1F2937' }
-                ]}>
+                <Text
+                  style={[
+                    styles.buttonText,
+                    { color: isDark ? '#fff' : '#1F2937' },
+                  ]}
+                >
                   Close
                 </Text>
               </TouchableOpacity>
-              
+
               {task.status === 'In Progress' && (
                 <TouchableOpacity
-                  style={[
-                    styles.button,
-                    styles.completeButton,
-                  ]}
+                  style={[styles.button, styles.completeButton]}
                   onPress={onComplete}
                 >
-                  <Text style={styles.completeButtonText}>
-                    Complete Task
-                  </Text>
+                  <Text style={styles.completeButtonText}>Complete Task</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -253,21 +261,38 @@ export default function TaskDetailsDialog({
         onRequestClose={onClose}
       >
         <View style={styles.overlay}>
-          <View style={[
-            styles.dialogContainer,
-            { backgroundColor: isDark ? '#111827' : 'white' }
-          ]}>
-            <Text style={[styles.title, { color: isDark ? '#fff' : '#1F2937' }]}>
+          <View
+            style={[
+              styles.dialogContainer,
+              { backgroundColor: isDark ? '#111827' : 'white' },
+            ]}
+          >
+            <Text
+              style={[styles.title, { color: isDark ? '#fff' : '#1F2937' }]}
+            >
               Camera Permission Required
             </Text>
-            <Text style={[styles.description, { color: isDark ? '#9CA3AF' : '#64748B' }]}>
+            <Text
+              style={[
+                styles.description,
+                { color: isDark ? '#9CA3AF' : '#64748B' },
+              ]}
+            >
               Please grant camera permission to record task completion videos.
             </Text>
             <TouchableOpacity
-              style={[styles.button, { backgroundColor: isDark ? '#374151' : '#F1F5F9' }]}
+              style={[
+                styles.button,
+                { backgroundColor: isDark ? '#374151' : '#F1F5F9' },
+              ]}
               onPress={onClose}
             >
-              <Text style={[styles.buttonText, { color: isDark ? '#fff' : '#1F2937' }]}>
+              <Text
+                style={[
+                  styles.buttonText,
+                  { color: isDark ? '#fff' : '#1F2937' },
+                ]}
+              >
                 Close
               </Text>
             </TouchableOpacity>
@@ -285,21 +310,22 @@ export default function TaskDetailsDialog({
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
-        <View style={[
-          styles.dialogContainer,
-          { backgroundColor: isDark ? '#111827' : 'white' }
-        ]}>
-          <Text style={[
-            styles.title,
-            { color: isDark ? '#fff' : '#1F2937' }
-          ]}>
+        <View
+          style={[
+            styles.dialogContainer,
+            { backgroundColor: isDark ? '#111827' : 'white' },
+          ]}
+        >
+          <Text style={[styles.title, { color: isDark ? '#fff' : '#1F2937' }]}>
             {task.title}
           </Text>
-          
-          <Text style={[
-            styles.description,
-            { color: isDark ? '#9CA3AF' : '#64748B' }
-          ]}>
+
+          <Text
+            style={[
+              styles.description,
+              { color: isDark ? '#9CA3AF' : '#64748B' },
+            ]}
+          >
             {task.description}
           </Text>
 
@@ -307,12 +333,8 @@ export default function TaskDetailsDialog({
             <View style={styles.cameraContainer}>
               {!videoUri ? (
                 <>
-                  <Camera
-                    ref={cameraRef}
-                    style={styles.camera}
-                    type={type}
-                  />
-                  <TouchableOpacity 
+                  <Camera ref={cameraRef} style={styles.camera} type={type} />
+                  <TouchableOpacity
                     style={styles.flipButton}
                     onPress={toggleCameraType}
                   >
@@ -333,7 +355,7 @@ export default function TaskDetailsDialog({
                   <TouchableOpacity
                     style={[
                       styles.recordButton,
-                      isRecording && styles.recordingButton
+                      isRecording && styles.recordingButton,
                     ]}
                     onPress={isRecording ? stopRecording : startRecording}
                     disabled={isRecording}
@@ -348,7 +370,7 @@ export default function TaskDetailsDialog({
                   <TouchableOpacity
                     style={[
                       styles.saveButton,
-                      uploading && styles.disabledButton
+                      uploading && styles.disabledButton,
                     ]}
                     onPress={handleSaveVideo}
                     disabled={uploading}
@@ -360,9 +382,7 @@ export default function TaskDetailsDialog({
                 )}
               </View>
 
-              {error && (
-                <Text style={styles.errorText}>{error}</Text>
-              )}
+              {error && <Text style={styles.errorText}>{error}</Text>}
             </View>
           )}
 
@@ -370,30 +390,27 @@ export default function TaskDetailsDialog({
             <TouchableOpacity
               style={[
                 styles.button,
-                { backgroundColor: isDark ? '#374151' : '#F1F5F9' }
+                { backgroundColor: isDark ? '#374151' : '#F1F5F9' },
               ]}
               onPress={onClose}
               disabled={uploading}
             >
-              <Text style={[
-                styles.buttonText,
-                { color: isDark ? '#fff' : '#1F2937' }
-              ]}>
+              <Text
+                style={[
+                  styles.buttonText,
+                  { color: isDark ? '#fff' : '#1F2937' },
+                ]}
+              >
                 Close
               </Text>
             </TouchableOpacity>
-            
+
             {task.status === 'In Progress' && (
               <TouchableOpacity
-                style={[
-                  styles.button,
-                  styles.completeButton,
-                ]}
+                style={[styles.button, styles.completeButton]}
                 onPress={onComplete}
               >
-                <Text style={styles.completeButtonText}>
-                  Complete Task
-                </Text>
+                <Text style={styles.completeButtonText}>Complete Task</Text>
               </TouchableOpacity>
             )}
           </View>

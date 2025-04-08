@@ -151,7 +151,7 @@ export default function Connections({
             >
               <View style={styles.userInfo}>
                 <Image
-                  source={{ uri: user.avatar_url }}
+                  source={{ uri: user.avatar_url || '' }}
                   style={styles.avatar}
                 />
                 <Text
@@ -210,7 +210,10 @@ export default function Connections({
             ]}
           >
             <View style={styles.userInfo}>
-              <Image source={{ uri: user.avatar_url }} style={styles.avatar} />
+              <Image
+                source={{ uri: user.avatar_url || '' }}
+                style={styles.avatar}
+              />
               <View>
                 <Text
                   style={[

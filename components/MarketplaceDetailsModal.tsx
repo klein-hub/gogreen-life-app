@@ -47,8 +47,7 @@ export default function MarketplaceDetailsModal({
         .insert({
           user_id: session.user.id,
           marketplace_id: product.id,
-          amount: product.amount,
-          status: 'completed',
+          status: 'Pending',
         });
 
       if (transactionError) throw transactionError;
