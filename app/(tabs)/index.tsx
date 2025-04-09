@@ -44,7 +44,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     loadDashboardData();
-  }, [session?.user?.id]);
+  }, [session]);
 
   async function loadDashboardData() {
     try {

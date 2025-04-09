@@ -20,7 +20,7 @@ export default function TabLayout() {
   }, []);
 
   useEffect(() => {
-    // if (mounted && !session?.user?.id) router.replace('/(auth)/login');
+    // if (mounted && !session?.user?.id)
     async function loadProfile() {
       try {
         if (!session?.user?.id) return;
@@ -42,7 +42,7 @@ export default function TabLayout() {
     }
 
     loadProfile();
-  }, [session?.user?.id, mounted]);
+  }, [session, mounted]);
 
   // Map of route names to their display titles and subtitles
   const routeTitles = {

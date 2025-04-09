@@ -9,7 +9,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { preventAutoHideAsync, hideAsync } from '../lib/splash-screen';
 
 function RootLayoutNav() {
-  const { isLoading, session } = useAuth();
+  const { onLayoutRootView, session, initialized } = useAuth();
 
   useEffect(() => {
     preventAutoHideAsync();
@@ -30,12 +30,13 @@ function RootLayoutNav() {
   }, []);
 
   useEffect(() => {
-    if (!isLoading) {
+    console.log('session changed: ', session);
+    if (initialized) {
       hideAsync();
     }
-  }, [isLoading]);
+  }, [initialized, session]);
 
-  if (isLoading) {
+  if (!initialized) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <Text>Loading...</Text>
@@ -44,13 +45,9 @@ function RootLayoutNav() {
   }
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
       <Stack screenOptions={{ headerShown: false }}>
-        {session ? (
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        ) : (
-          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        )}
+        <Slot />
       </Stack>
       <StatusBar style="auto" />
     </View>
