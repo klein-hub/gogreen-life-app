@@ -1,94 +1,45 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  useCallback,
-} from 'react';
-import { Session, User } from '@supabase/supabase-js';
+import { createContext, useContext, useEffect, useState } from 'react';
+import { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
-import { useRouter, useSegments, SplashScreen } from 'expo-router';
+import { router } from 'expo-router';
 
 type AuthContextType = {
-  user: User | null;
   session: Session | null;
-  initialized?: boolean;
+  isLoading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
-  onLayoutRootView: () => Promise<void>;
 };
 
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  session: null,
-  initialized: false,
-  signIn: async () => {},
-  signUp: async () => {},
-  signOut: async () => {},
-  onLayoutRootView: async () => {},
-});
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
-  const segments = useSegments();
-  const [user, setUser] = useState<User | null>(null);
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
-  const [initialized, setInitialized] = useState<boolean>(false);
-  const [appIsReady, setAppIsReady] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    async function prepare() {
-      try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        setSession(session);
-        setUser(session ? session.user : null);
-        setInitialized(true);
-
-        const {
-          data: { subscription },
-        } = supabase.auth.onAuthStateChange((_event, session) => {
-          setSession(session);
-          setUser(session ? session.user : null);
-        });
-
-        // await new Promise((resolve) => setTimeout(resolve, 100));
-        subscription.unsubscribe();
-      } catch (e) {
-        console.warn(e);
-      } finally {
-        setAppIsReady(true);
+    const initSession = async () => {
+      const { data, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error('Error fetching session:', error);
       }
-    }
+      setSession(data?.session ?? null);
+      setIsLoading(false);
+    };
 
-    prepare();
+    initSession();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setSession(session);
+        router.replace(session ? '/(tabs)' : '/(auth)/login');
+      }
+    );
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
   }, []);
-
-  useEffect(() => {
-    if (!initialized || !appIsReady) return;
-
-    const inProtectedGroup = segments[0] === '(tabs)';
-    console.log('segments', segments);
-    console.log('inProtectedGroup', inProtectedGroup);
-
-    if (session && inProtectedGroup) {
-      router.replace('/(tabs)');
-    } else {
-      router.replace('/(auth)/login');
-    }
-  }, [initialized, appIsReady, session]);
-
-  const onLayoutRootView = useCallback(async () => {
-    if (appIsReady) {
-      await SplashScreen.hideAsync();
-    }
-  }, [appIsReady]);
-
-  if (!initialized || !appIsReady) {
-    return null;
-  }
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
@@ -99,10 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
+    const { error } = await supabase.auth.signUp({ email, password });
     if (error) throw error;
   };
 
@@ -113,21 +61,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{
-        user,
-        session,
-        initialized,
-        signIn,
-        signUp,
-        signOut,
-        onLayoutRootView,
-      }}
+      value={{ session, isLoading, signIn, signUp, signOut }}
     >
       {children}
     </AuthContext.Provider>
   );
-}
+};
 
-export const useAuth = () => {
-  return useContext(AuthContext);
+export const useAuth = (): AuthContextType => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };

@@ -2,21 +2,14 @@ import { Slot, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider, useAuth } from '../context/auth';
 import { ThemeProvider } from '../context/theme';
-import { useEffect, useCallback } from 'react';
+import { useEffect } from 'react';
 import * as Font from 'expo-font';
-import { View, Text } from 'react-native';
+import { View, SafeAreaView } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { preventAutoHideAsync, hideAsync } from '../lib/splash-screen';
 
-function RootLayoutNav() {
-  const { onLayoutRootView, session, initialized } = useAuth();
-
+const useFonts = () => {
   useEffect(() => {
-    preventAutoHideAsync();
-  }, []);
-
-  useEffect(() => {
-    async function loadFonts() {
+    const loadFonts = async () => {
       try {
         await Font.loadAsync({
           ...require('@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Ionicons.ttf'),
@@ -24,42 +17,39 @@ function RootLayoutNav() {
       } catch (e) {
         console.warn('Error loading fonts:', e);
       }
-    }
+    };
 
     loadFonts();
   }, []);
+};
 
-  useEffect(() => {
-    console.log('session changed: ', session);
-    if (initialized) {
-      hideAsync();
-    }
-  }, [initialized, session]);
+const RootLayoutNav = () => {
+  const { isLoading, session } = useAuth();
 
-  if (!initialized) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text>Loading...</Text>
-      </View>
-    );
-  }
+  useFonts();
+
+  if (isLoading) return null;
 
   return (
-    <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
-      <Slot />
-      <StatusBar style="auto" />
-    </View>
+    <SafeAreaView style={{ flex: 1 }}>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name={session ? '(tabs)' : '(auth)'} />
+      </Stack>
+    </SafeAreaView>
   );
-}
+};
 
-export default function RootLayout() {
+const RootLayout = () => {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider>
         <AuthProvider>
+          <StatusBar style="auto" />
           <RootLayoutNav />
         </AuthProvider>
       </ThemeProvider>
     </GestureHandlerRootView>
   );
-}
+};
+
+export default RootLayout;
