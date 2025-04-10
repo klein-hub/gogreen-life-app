@@ -54,7 +54,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(session ? session.user : null);
         });
 
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        // await new Promise((resolve) => setTimeout(resolve, 100));
+        subscription.unsubscribe();
       } catch (e) {
         console.warn(e);
       } finally {
@@ -69,8 +70,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!initialized || !appIsReady) return;
 
     const inProtectedGroup = segments[0] === '(tabs)';
+    console.log('segments', segments);
+    console.log('inProtectedGroup', inProtectedGroup);
 
-    if (session && !inProtectedGroup) {
+    if (session && inProtectedGroup) {
       router.replace('/(tabs)');
     } else {
       router.replace('/(auth)/login');

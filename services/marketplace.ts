@@ -50,4 +50,41 @@ export const marketplaceService = {
     if (error) throw error;
     return data;
   },
+
+  async purchaseProduct(userId: string, productId: string): Promise<string> {
+    // Fetch the product details
+    const { data: product, error: productError } = await supabase
+      .from('marketplace')
+      .select('amount')
+      .eq('id', productId)
+      .single();
+
+    if (productError) throw productError;
+    if (!product) throw new Error('Product not found');
+
+    // Fetch the user's current points
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('points')
+      .eq('id', userId)
+      .single();
+
+    if (userError) throw userError;
+    if (!user) throw new Error('User not found');
+
+    // Check if the user has enough points
+    if (user.points < product.amount) {
+      return "You don't have enough points to purchase this item.";
+    }
+
+    // Deduct the points and update the user's record
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({ points: user.points - product.amount })
+      .eq('id', userId);
+
+    if (updateError) throw updateError;
+
+    return 'Purchase successful! Your points have been deducted.';
+  },
 };

@@ -6,14 +6,7 @@
     "orientation": "portrait",
     "scheme": "gogreen",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
-    "ios": {
-      "supportsTablet": true,
-      "infoPlist": {
-        "NSCameraUsageDescription": "Allow GoGreen Life to access your camera to record task completion videos.",
-        "NSMicrophoneUsageDescription": "Allow GoGreen Life to access your microphone for recording task videos."
-      }
-    },
+    "newArchEnabled": false,
     "android": {
       "permissions": ["CAMERA", "RECORD_AUDIO"],
       "package": "com.propel.gogreenlife"

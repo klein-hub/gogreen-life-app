@@ -9,10 +9,11 @@ import {
 } from 'react-native';
 import { useTheme } from '../context/theme';
 import { Ionicons } from '@expo/vector-icons';
-import { Product } from '../services/marketplace';
-import { useState } from 'react';
+import { Product, marketplaceService } from '../services/marketplace';
+import { useState, useRef, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/auth';
+import Toast from './Toast';
 
 type MarketplaceDetailsModalProps = {
   isVisible: boolean;
@@ -29,8 +30,36 @@ export default function MarketplaceDetailsModal({
   const { session } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error' | 'info'>(
+    'success'
+  );
+  const isMounted = useRef(true);
 
   if (!product) return null;
+
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
+  const showToastMessage = (
+    message: string,
+    type: 'success' | 'error' | 'info' = 'success'
+  ) => {
+    setToastMessage(message);
+    setToastType(type);
+    console.log('showToast');
+    setShowToast(true);
+
+    setTimeout(() => {
+      if (isMounted.current) {
+        setShowToast(false);
+      }
+    }, 3000);
+  };
 
   const handlePurchase = async () => {
     try {
@@ -40,6 +69,13 @@ export default function MarketplaceDetailsModal({
       if (!session?.user?.id) {
         throw new Error('You must be logged in to make a purchase');
       }
+
+      const response = await marketplaceService.purchaseProduct(
+        session.user.id,
+        product.id
+      );
+
+      showToastMessage(response.toString(), 'success');
 
       // Create transaction record
       const { error: transactionError } = await supabase

@@ -46,9 +46,7 @@ function RootLayoutNav() {
 
   return (
     <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Slot />
-      </Stack>
+      <Slot />
       <StatusBar style="auto" />
     </View>
   );

@@ -8,18 +8,25 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   orientation: 'portrait',
   scheme: 'gogreen',
   userInterfaceStyle: 'automatic',
-  newArchEnabled: true,
-  ios: {
-    supportsTablet: true,
-  },
+  newArchEnabled: false,
   android: {
-    package: 'com.propel.gogreenlife', // Replace with your unique package name
+    package: 'com.propel.gogreenlife',
+    permissions: ['CAMERA', 'RECORD_AUDIO'],
   },
   web: {
     bundler: 'metro',
     output: 'single',
   },
-  plugins: ['expo-router'],
+  plugins: [
+    'expo-router',
+    [
+      'expo-camera',
+      {
+        cameraPermission:
+          'Allow GoGreen Life to access your camera to record task completion videos.',
+      },
+    ],
+  ],
   experiments: {
     typedRoutes: true,
   },
